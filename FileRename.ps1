@@ -66,9 +66,10 @@ Get-ChildItem -LiteralPath $searchPath -Recurse -File | ForEach-Object {
     if ($newName -ne $name) {
         $newBytes = [System.Text.Encoding]::UTF8.GetByteCount($newName)
         $newPathLen = "$dirPath\$newName".Length
-        Write-Host "[RENAME] $dirPath\$name"
-        Write-Host "      -> $newName  (name: $bytes -> $newBytes bytes, path: $newPathLen chars)"
-        $answer = Read-Host "      Rename? (Y/N)"
+        Write-Host "Path:     $dirPath"
+        Write-Host "Before:   $name ($bytes bytes)"
+        Write-Host "After:    $newName ($newBytes bytes, path: $newPathLen chars)"
+        $answer = Read-Host "Rename? (Y/N)"
         if ($answer -eq "Y" -or $answer -eq "y") {
             Rename-Item -LiteralPath $_.FullName -NewName $newName
             Write-Host "      Done."
