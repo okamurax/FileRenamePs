@@ -9,6 +9,15 @@ Get-ChildItem -Path $targetDir -Recurse -File | ForEach-Object {
     $dirPath = $_.DirectoryName
     $bytes = [System.Text.Encoding]::UTF8.GetByteCount($name)
 
+    # フルパス260文字制限（Windows用）- Rename-Itemが失敗しないよう最初にチェック
+    while (("$dirPath\$stem$ext").Length -gt $maxPathChars -and $stem.Length -gt 1) {
+        if ($stem.Length -ge 2 -and [char]::IsLowSurrogate($stem[$stem.Length - 1])) {
+            $stem = $stem.Substring(0, $stem.Length - 2)
+        } else {
+            $stem = $stem.Substring(0, $stem.Length - 1)
+        }
+    }
+
     # 絵文字・特殊文字の削除
     $cleanStem = ""
     for ($i = 0; $i -lt $stem.Length; $i++) {
@@ -34,15 +43,6 @@ Get-ChildItem -Path $targetDir -Recurse -File | ForEach-Object {
         $cleanStem = "renamed"
     }
     $stem = $cleanStem
-
-    # フルパス260文字制限（Windows用）- Rename-Itemが失敗しないよう先にチェック
-    while (("$dirPath\$stem$ext").Length -gt $maxPathChars -and $stem.Length -gt 1) {
-        if ($stem.Length -ge 2 -and [char]::IsLowSurrogate($stem[$stem.Length - 1])) {
-            $stem = $stem.Substring(0, $stem.Length - 2)
-        } else {
-            $stem = $stem.Substring(0, $stem.Length - 1)
-        }
-    }
 
     # ファイル名255バイト制限（Linux NAS用）
     $extBytes = [System.Text.Encoding]::UTF8.GetByteCount($ext)
