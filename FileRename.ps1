@@ -13,6 +13,9 @@ Get-ChildItem -LiteralPath $searchPath -Recurse -File | ForEach-Object {
     $dirPath = $_.DirectoryName -replace '^\\\\\?\\', ''
     $bytes = [System.Text.Encoding]::UTF8.GetByteCount($name)
 
+    # ドットファイル（.bridgesort等）はスキップ
+    if ($name.StartsWith(".") -and $stem -eq "") { return }
+
     # フルパス260文字制限（Windows用）- Rename-Itemが失敗しないよう最初にチェック
     while (("$dirPath\$stem$ext").Length -gt $maxPathChars -and $stem.Length -gt 1) {
         if ($stem.Length -ge 2 -and [char]::IsLowSurrogate($stem[$stem.Length - 1])) {
