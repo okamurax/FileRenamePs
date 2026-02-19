@@ -2,7 +2,7 @@ $targetDir = Read-Host "Enter target directory path"
 $maxBytes = 255
 $maxPathChars = 260
 
-Get-ChildItem -Path $targetDir -Recurse -File | ForEach-Object {
+Get-ChildItem -LiteralPath $targetDir -Recurse -File | ForEach-Object {
     $name = $_.Name
     $ext = $_.Extension
     $stem = [System.IO.Path]::GetFileNameWithoutExtension($name)
@@ -63,7 +63,7 @@ Get-ChildItem -Path $targetDir -Recurse -File | ForEach-Object {
         Write-Host "      -> $newName  (name: $bytes -> $newBytes bytes, path: $newPathLen chars)"
         $answer = Read-Host "      Rename? (Y/N)"
         if ($answer -eq "Y" -or $answer -eq "y") {
-            Rename-Item -Path $_.FullName -NewName $newName
+            Rename-Item -LiteralPath $_.FullName -NewName $newName
             Write-Host "      Done."
         } else {
             Write-Host "      Skipped."
