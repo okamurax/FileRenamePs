@@ -1,4 +1,4 @@
-$targetDir = ""
+$targetDir = Read-Host "Enter target directory path"
 $maxBytes = 255
 $maxPathChars = 260
 
@@ -9,22 +9,45 @@ Get-ChildItem -Path $targetDir -Recurse -File | ForEach-Object {
     $dirPath = $_.DirectoryName
     $bytes = [System.Text.Encoding]::UTF8.GetByteCount($name)
 
-    # ファイル名255バイト制限（Linux NAS用）
-    if ($bytes -gt $maxBytes) {
-        $extBytes = [System.Text.Encoding]::UTF8.GetByteCount($ext)
-        $limit = $maxBytes - $extBytes
+    # 絵文字・特殊文字の削除
+    $cleanStem = ""
+    for ($i = 0; $i -lt $stem.Length; $i++) {
+        $c = $stem[$i]
+        if ([char]::IsHighSurrogate($c)) {
+            $i++
+            continue
+        }
+        if ([char]::IsLowSurrogate($c)) {
+            continue
+        }
+        $code = [int]$c
+        if (($code -ge 0xFE00 -and $code -le 0xFE0F) -or
+            ($code -ge 0x200B -and $code -le 0x200F) -or
+            $code -eq 0x200D -or $code -eq 0xFEFF -or
+            ($code -ge 0x2600 -and $code -le 0x27BF)) {
+            continue
+        }
+        $cleanStem += $c
+    }
+    $cleanStem = $cleanStem.Trim()
+    if ($cleanStem.Length -eq 0) {
+        $cleanStem = "renamed"
+    }
+    $stem = $cleanStem
 
-        while ([System.Text.Encoding]::UTF8.GetByteCount($stem) -gt $limit) {
-            if ($stem.Length -ge 2 -and [char]::IsLowSurrogate($stem[$stem.Length - 1])) {
-                $stem = $stem.Substring(0, $stem.Length - 2)
-            } else {
-                $stem = $stem.Substring(0, $stem.Length - 1)
-            }
+    # フルパス260文字制限（Windows用）- Rename-Itemが失敗しないよう先にチェック
+    while (("$dirPath\$stem$ext").Length -gt $maxPathChars -and $stem.Length -gt 1) {
+        if ($stem.Length -ge 2 -and [char]::IsLowSurrogate($stem[$stem.Length - 1])) {
+            $stem = $stem.Substring(0, $stem.Length - 2)
+        } else {
+            $stem = $stem.Substring(0, $stem.Length - 1)
         }
     }
 
-    # フルパス260文字制限（Windows用）
-    while (("$dirPath\$stem$ext").Length -gt $maxPathChars) {
+    # ファイル名255バイト制限（Linux NAS用）
+    $extBytes = [System.Text.Encoding]::UTF8.GetByteCount($ext)
+    $limit = $maxBytes - $extBytes
+    while ([System.Text.Encoding]::UTF8.GetByteCount($stem) -gt $limit -and $stem.Length -gt 1) {
         if ($stem.Length -ge 2 -and [char]::IsLowSurrogate($stem[$stem.Length - 1])) {
             $stem = $stem.Substring(0, $stem.Length - 2)
         } else {
