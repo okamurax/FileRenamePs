@@ -2,11 +2,15 @@ $targetDir = Read-Host "Enter target directory path"
 $maxBytes = 255
 $maxPathChars = 260
 
-Get-ChildItem -LiteralPath $targetDir -Recurse -File | ForEach-Object {
+# 260文字超のパスに対応するため \\?\ プレフィックスを使用
+$searchPath = "\\?\$targetDir"
+
+Get-ChildItem -LiteralPath $searchPath -Recurse -File | ForEach-Object {
     $name = $_.Name
     $ext = $_.Extension
     $stem = [System.IO.Path]::GetFileNameWithoutExtension($name)
-    $dirPath = $_.DirectoryName
+    # \\?\ を除去して実際のパス長を計算
+    $dirPath = $_.DirectoryName -replace '^\\\\\?\\', ''
     $bytes = [System.Text.Encoding]::UTF8.GetByteCount($name)
 
     # フルパス260文字制限（Windows用）- Rename-Itemが失敗しないよう最初にチェック
@@ -59,7 +63,7 @@ Get-ChildItem -LiteralPath $targetDir -Recurse -File | ForEach-Object {
     if ($newName -ne $name) {
         $newBytes = [System.Text.Encoding]::UTF8.GetByteCount($newName)
         $newPathLen = "$dirPath\$newName".Length
-        Write-Host "[RENAME] $($_.FullName)"
+        Write-Host "[RENAME] $dirPath\$name"
         Write-Host "      -> $newName  (name: $bytes -> $newBytes bytes, path: $newPathLen chars)"
         $answer = Read-Host "      Rename? (Y/N)"
         if ($answer -eq "Y" -or $answer -eq "y") {
