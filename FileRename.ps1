@@ -45,7 +45,7 @@ Get-ChildItem -LiteralPath $searchPath -Recurse -File | ForEach-Object {
         }
         $cleanStem += $c
     }
-    $cleanStem = $cleanStem.Trim()
+    $cleanStem = ($cleanStem -replace '\s{2,}', ' ').Trim()
     if ($cleanStem.Length -eq 0) {
         $cleanStem = "renamed"
     }
