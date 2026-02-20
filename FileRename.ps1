@@ -40,7 +40,7 @@ Get-ChildItem -LiteralPath $searchPath -Recurse -File | ForEach-Object {
         if (($code -ge 0xFE00 -and $code -le 0xFE0F) -or
             ($code -ge 0x200B -and $code -le 0x200F) -or
             $code -eq 0x200D -or $code -eq 0xFEFF -or
-            ($code -ge 0x2600 -and $code -le 0x27BF)) {
+            ($code -ge 0x2600 -and $code -le 0x2BFF)) {
             continue
         }
         $cleanStem += $c
