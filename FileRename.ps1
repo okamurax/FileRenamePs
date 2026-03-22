@@ -1,6 +1,6 @@
 $targetDir = Read-Host "Enter target directory path"
 $maxBytes = 255
-$maxPathChars = 260
+$maxPathChars = 255
 
 # 260文字超のパスに対応するため \\?\ プレフィックスを使用
 $searchPath = "\\?\$targetDir"
